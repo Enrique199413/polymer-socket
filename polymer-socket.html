@@ -1,0 +1,148 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../polymer/polymer.html">
+<script src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <polymer-socket></polymer-socket>
+
+@group Seed Elements
+@element polymer-socket
+@demo demo/index.html
+@hero hero.svg
+-->
+<dom-module id="polymer-socket">
+
+  <template>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>Esta conectado <span>{{foo}}</span></div>
+  </template>
+
+</dom-module>
+
+<script>
+
+  Polymer({
+
+    is: 'polymer-socket',
+
+    properties: {
+      foo: {
+        type: Boolean,
+        value: false,
+        notify: true
+      },
+      url: {
+        type: String,
+        value: "URL no definida",
+        notify: true
+      }
+    },
+
+    // Element Lifecycle
+
+    ready: function() {
+      var that = this;
+      var container = Polymer.dom(this);
+      var div = document.createElement('div');
+      var div1 = document.createElement('div');
+      var span = document.createElement('span');
+      that.foo = that.url;
+      if (this.url) {
+        var socket = io.connect(this.url);
+      } else {
+        var socket = io.connect('ws://localhost:4000');
+      }
+
+      this.waitfor(function () {
+          return socket.connected !== false;
+        },
+        function () {
+          that.foo = socket.connected;
+        });
+      socket.on('connect_error', function (data) {
+        console.log(data);
+        socket = '';
+      });
+      socket.on('users', function (data) {
+        span.innerHTML = data;
+      });
+      div.innerHTML = 'usuarios conectados ';
+      div1.innerHTML = 'Conectado a ' + this.url;
+      div.appendChild(span);
+      Polymer.dom(this.root).appendChild(div);
+      Polymer.dom(this.root).appendChild(div1);
+
+    },
+    waitfor: function (funcCondicion, callback) {
+      var interval = setInterval(function () {
+        if (funcCondicion()) {
+          clearInterval(interval);
+          callback();
+        }
+      }, 1);
+    },
+
+    attached: function() {
+      // `attached` fires once the element and its parents have been inserted
+      // into a document.
+      //
+      // This is a good place to perform any work related to your element's
+      // visual state or active behavior (measuring sizes, beginning animations,
+      // loading resources, etc).
+    },
+
+    detached: function() {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+    },
+
+    // Element Behavior
+
+    /**
+     * The `polymer-socket-lasers` event is fired whenever `fireLasers` is called.
+     *
+     * @event polymer-socket-lasers
+     * @detail {{sound: String}}
+     */
+
+    /**
+     * Sometimes it's just nice to say hi.
+     *
+     * @param {string} greeting A positive greeting.
+     * @return {string} The full greeting.
+     */
+    sayHello: function(greeting) {
+      var response = greeting || 'Hello World!';
+      return 'polymer-socket says, ' + response;
+    },
+
+    /**
+     * Attempt to destroy this element's enemies with a beam of light!
+     *
+     * Or, at least, dispatch an event in the vain hope that someone else will
+     * do the zapping.
+     */
+    fireLasers: function() {
+      this.fire('polymer-socket-lasers', {sound: 'Pew pew!'});
+    }
+
+  });
+
+</script>
